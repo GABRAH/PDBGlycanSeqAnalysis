@@ -37,9 +37,9 @@ for directory in srcFileDirs:
     outputDir = os.path.join(resultsDir, directory)
     CreateFolder(outputDir)
     with open(os.path.join(outputDir, "output.csv"), "a", newline="") as csvfile:
-        fieldnames = ["pdbID", "Residue", "Chain", "ClientWURCS", "ServerWURCS", "stringMatch"]
+        fieldnames = ["pdbID", "Residue", "Chain", "ClientWURCS", "ServerWURCS", "stringMatch", "glytoucanID"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writerow({"pdbID": "PDB_ID", "Residue": "Residue", "Chain": "Chain", "ClientWURCS": "privateerWURCS", "ServerWURCS": "glycosmosWURCS", "stringMatch": "stringMatch"})
+        writer.writerow({"pdbID": "PDB_ID", "Residue": "Residue", "Chain": "Chain", "ClientWURCS": "privateerWURCS", "ServerWURCS": "glycosmosWURCS", "stringMatch": "stringMatch", "glytoucanID": "glytoucanID"})
         for count, pdbFile in enumerate(os.listdir(sourceDir)):
             if pdbFile.endswith(".pdb"):
                 pdbID = os.path.splitext(os.path.basename(pdbFile))[0]
@@ -62,12 +62,17 @@ for directory in srcFileDirs:
                     queryLink = 'https://api.glycosmos.org/glytoucan/sparql/wurcs2gtcids?wurcs=' + privateerWURCS
                     serverResponse = requests.get(queryLink).json()
                     for item in serverResponse:
-                        glycosmosWURCS = item['WURCS']
+                        try:
+                            glytoucanID = item["id"]
+                            glycosmosWURCS = item["WURCS"]
+                        except KeyError:
+                            glytoucanID = "message"
+                            glycosmosWURCS = "no accnumber"
 
 
                     stringMatch = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
                     
-                    writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "stringMatch": stringMatch})
+                    writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "stringMatch": stringMatch, "glytoucanID": glytoucanID})
                     # print(pdbID, residueInfo, chainInfo, privateerWURCS, glycosmosWURCS, stringMatch)
                     # "pdbID", "Residue", "Chain", "ClientWURCS", "ServerWURCS", "stringMatch"
 
