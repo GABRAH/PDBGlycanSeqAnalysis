@@ -21,6 +21,18 @@ def CreateFolder(path):
         shutil.rmtree(path)           # Removes all the subdirectories!
         os.makedirs(path)
 
+def return_json(URL):
+    response = requests.get(URL)
+
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        # Whoops it wasn't a 200
+        return "Error: " + str(e)
+
+    # Must have been a 200 status code
+    json_obj = response.json()
+    return json_obj
 
 
 
@@ -60,7 +72,7 @@ for directory in srcFileDirs:
                     privateerWURCS = temporaryListOfStrings[1]
 
                     queryLink = 'https://api.glycosmos.org/glytoucan/sparql/wurcs2gtcids?wurcs=' + privateerWURCS
-                    serverResponse = requests.get(queryLink).json()
+                    serverResponse = return_json(queryLink)
                     for item in serverResponse:
                         try:
                             glytoucanID = item["id"]
