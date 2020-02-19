@@ -6,6 +6,8 @@ import requests
 import privateer
 from datetime import datetime
 
+import traceback
+
 
 def GetDirectories(currentdirectory):
     directories = []
@@ -77,9 +79,9 @@ for directory in srcFileDirs:
                         try:
                             glytoucanID = item["id"]
                             glycosmosWURCS = item["WURCS"]
-                        except KeyError:
-                            glytoucanID = "message"
-                            glycosmosWURCS = "no accnumber"
+                        except Exception as e:
+                            glytoucanID = "type error: " + str(e)
+                            glycosmosWURCS = traceback.format_exc()
 
 
                     stringMatch = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
