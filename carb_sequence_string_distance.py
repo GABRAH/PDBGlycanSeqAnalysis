@@ -5,6 +5,8 @@ import re
 import privateer
 import json
 from datetime import datetime
+import textdistance
+from heapq import nlargest
 
 def GetDirectories(currentdirectory):
     directories = []
@@ -22,7 +24,6 @@ def CreateFolderAndFile(path, outputfilename):
     if os.path.exists(os.path.join(path, outputFileName)):
         os.remove(os.path.join(path, outputFileName))
 
-
 def GetJSON(path):
     if path.endswith(".json"):
         with open(path) as json_file:
@@ -35,20 +36,30 @@ def Find(list, key, value):
             return i
     return "Not Found"
 
+def FindClosestMatches(list, value):
+    valueListOfDicts = []
+    for item in list:
+        similarity = textdistance.damerau_levenshtein.normalized_similarity(value, item['Sequence'])
+        valueDict = {'GTC_ID': item['AccessionNumber'], 'Sequence': item['Sequence'], "Score": similarity}
+        valueListOfDicts.append(valueDict)
+    closestMatches = nlargest(3, valueListOfDicts, key=lambda s: s['Score'])
+    return closestMatches
+
+
+
 
 rootDir = os.getcwd()
 structureListDir = os.path.join(rootDir, "structures")
 srcFileDirs = GetDirectories(structureListDir)
 resultsDir = os.path.join(rootDir, "results/offline")
 dataDir = os.path.join(rootDir, "data")
-outputFileName = "all_chains.csv"
+outputFileName = "closest_strings.csv"
 
 # ignoreDirectoryList = ["cryoem_n_glycosylated", "xray_n_glycosylated", "cryoem_n_glycosylated_failed"]
 ignoreDirectoryList = []
 dataFileName = "glycosmos_data_2020-02-20.json"
 
 glycosmosData = GetJSON(os.path.join(dataDir, dataFileName))
-print(type(glycosmosData))
 
 tock = datetime.now()
 for directory in srcFileDirs:
@@ -57,9 +68,9 @@ for directory in srcFileDirs:
         outputDir = os.path.join(resultsDir, directory)
         CreateFolderAndFile(outputDir, outputFileName)
         with open(os.path.join(outputDir, outputFileName), "a", newline="") as csvfile:
-            fieldnames = ["pdbID", "Residue", "Chain", "ClientWURCS", "ServerWURCS", "stringMatch", "glytoucanID"]
+            fieldnames = ["pdbID", "Residue", "Chain", "ClientWURCS", "firstClosest", "secondClosest", "thirdClosest", "firstScore", "secondScore", "thirdScore", "firstClosestGTC", "secondClosestGTC", "thirdClosestGTC"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({"pdbID": "PDB_ID", "Residue": "Residue", "Chain": "Chain", "ClientWURCS": "privateerWURCS", "ServerWURCS": "glycosmosWURCS", "stringMatch": "stringMatch", "glytoucanID": "glytoucanID"})
+            writer.writerow({"pdbID": "PDB_ID", "Residue": "Residue", "Chain": "Chain", "ClientWURCS": "privateerWURCS", "firstClosest": "firstClosest", "secondClosest": "secondClosest", "thirdClosest": "thirdClosest", "firstScore": "firstScore", "secondScore": "secondScore", "thirdScore": "thirdScore", "firstClosestGTC": "firstGTC", "secondClosestGTC": "secondGTC", "thirdClosestGTC": "thirdGTC"})
             for count, pdbFile in enumerate(os.listdir(sourceDir)):
                 if pdbFile.endswith(".pdb"):
                     pdbID = os.path.splitext(os.path.basename(pdbFile))[0]
@@ -84,12 +95,13 @@ for directory in srcFileDirs:
                                 glytoucanID = glycosmosData[indexMatch]["AccessionNumber"]
                                 glycosmosWURCS = glycosmosData[indexMatch]["Sequence"]
                         else: 
-                                glytoucanID = "N/A"
-                                glycosmosWURCS = "Not Found"
-                                # stringMatch = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
-                                # writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "stringMatch": stringMatch, "glytoucanID": glytoucanID})
-                        stringMatch = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
-                        writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "stringMatch": stringMatch, "glytoucanID": glytoucanID})
+                                possibleHits = FindClosestMatches(glycosmosData, privateerWURCS)
+                                writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "firstClosest": possibleHits[0]['Sequence'], "secondClosest": possibleHits[1]['Sequence'], "thirdClosest": possibleHits[2]['Sequence'], "firstScore": possibleHits[0]['Score'], "secondScore": possibleHits[1]['Score'], "thirdScore": possibleHits[2]['Score'], "firstClosestGTC": possibleHits[0]['GTC_ID'], "secondClosestGTC": possibleHits[1]['GTC_ID'], "thirdClosestGTC": possibleHits[2]['GTC_ID']})
+
+
+                        # stringMatch = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
+                        
+                        # writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "stringMatch": stringMatch, "glytoucanID": glytoucanID})
 
                         temporaryListOfStrings = temporaryListOfStrings[2:]
 tick = datetime.now()
