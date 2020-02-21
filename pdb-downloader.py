@@ -8,9 +8,9 @@ import privateer
 def CreateFolder(path):
     if not os.path.exists(path):
         os.makedirs(path)
-    else:
-        shutil.rmtree(path)           # Removes all the subdirectories!
-        os.makedirs(path)
+    # else:
+    #     shutil.rmtree(path)           # Removes all the subdirectories!
+    #     os.makedirs(path)
 
 def WriteFile(directory, filename, content):
     with open(os.path.join(directory,filename), "w") as file:
@@ -27,12 +27,15 @@ def GenerateListOfStructures(filepath, filename):
     return structureList
 
 
+ignoreFileList = ["cryoem_n_glycosylated.csv", "xray_n_glycosylated.csv"]
+
 rootDir = os.getcwd()
 structureListDir = os.path.join(rootDir, "structures")
 
 
 for structureListFile in os.listdir(structureListDir):
-    if structureListFile.endswith(".csv"):
+    if structureListFile.endswith(".csv") and structureListFile not in ignoreFileList:
+        print(structureListFile)
         structureListFileName = os.path.splitext(os.path.basename(structureListFile))[0]
         outputDir = os.path.join(structureListDir, structureListFileName)
         CreateFolder(outputDir)

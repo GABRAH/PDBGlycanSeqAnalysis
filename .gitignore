@@ -7,6 +7,16 @@
 # Unignore all dirs
 !*/
 
-# Ignore big files
+# Ignore data files
 *.pdb
 *.csv
+*.json
+*.scm
+*.svg
+*.cif
+
+/results
+/data
+/structures
+/Archive
+.ipynb_checkpoints
