@@ -2,7 +2,7 @@ import os
 import csv
 import shutil
 import pypdb as pdb
-import privateer
+from privateer import privateer_core as pvt
 
 # function to create/delete existing folders
 def CreateFolder(path):
@@ -28,6 +28,7 @@ def GenerateListOfStructures(filepath, filename):
 
 
 ignoreFileList = ["cryoem_n_glycosylated.csv", "xray_n_glycosylated.csv"]
+ignoreFileList = [""]
 
 rootDir = os.getcwd()
 structureListDir = os.path.join(rootDir, "structures")

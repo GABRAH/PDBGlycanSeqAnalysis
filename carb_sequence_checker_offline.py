@@ -2,7 +2,7 @@ import os
 import csv
 import shutil
 import re
-import privateer
+from privateer import privateer_core as pvt
 import json
 from datetime import datetime
 
@@ -45,7 +45,7 @@ outputFileName = "all_chains.csv"
 
 # ignoreDirectoryList = ["cryoem_n_glycosylated", "xray_n_glycosylated", "cryoem_n_glycosylated_failed"]
 ignoreDirectoryList = []
-dataFileName = "glycosmos_data_2020-02-20.json"
+dataFileName = "glycosmos_data_2020-05-05.json"
 
 glycosmosData = GetJSON(os.path.join(dataDir, dataFileName))
 print(type(glycosmosData))
@@ -65,7 +65,7 @@ for directory in srcFileDirs:
                     pdbID = os.path.splitext(os.path.basename(pdbFile))[0]
                     print(f'Currently processing: {pdbID}\nProgress: {count+1} out of {len(os.listdir(sourceDir))}\t Progress - {int((count/len(os.listdir(sourceDir))*100))}%')
                     pdbFilePath = os.path.join(sourceDir, pdbFile)
-                    totalWURCS = privateer.print_wurcs(pdbFilePath)
+                    totalWURCS = pvt.print_wurcs(pdbFilePath)
                     
                     temporaryString = totalWURCS.split('\n', 1)[0]
                     if temporaryString[0:21] == 'Total Glycans Found: ':
