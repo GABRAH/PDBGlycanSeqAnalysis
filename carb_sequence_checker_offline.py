@@ -45,7 +45,7 @@ outputFileName = "all_chains.csv"
 
 # ignoreDirectoryList = ["cryoem_n_glycosylated", "xray_n_glycosylated", "cryoem_n_glycosylated_failed"]
 ignoreDirectoryList = []
-dataFileName = "glycosmos_data_2020-05-05.json"
+dataFileName = "database.json"
 
 glycosmosData = GetJSON(os.path.join(dataDir, dataFileName))
 print(type(glycosmosData))
@@ -57,9 +57,9 @@ for directory in srcFileDirs:
         outputDir = os.path.join(resultsDir, directory)
         CreateFolderAndFile(outputDir, outputFileName)
         with open(os.path.join(outputDir, outputFileName), "a", newline="") as csvfile:
-            fieldnames = ["pdbID", "Residue", "Chain", "ClientWURCS", "ServerWURCS", "stringMatch", "glytoucanID"]
+            fieldnames = ["pdbID", "Residue", "Chain", "ClientWURCS", "ServerWURCS", "GTCIDFOUND", "glytoucanID", "GLYCONNECTIDFOUND", "glyconnectID"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({"pdbID": "PDB_ID", "Residue": "Residue", "Chain": "Chain", "ClientWURCS": "privateerWURCS", "ServerWURCS": "glycosmosWURCS", "stringMatch": "stringMatch", "glytoucanID": "glytoucanID"})
+            writer.writerow({"pdbID": "PDB_ID", "Residue": "Residue", "Chain": "Chain", "ClientWURCS": "privateerWURCS", "ServerWURCS": "glycosmosWURCS", "GTCIDFOUND": "GTCIDFOUND", "glytoucanID": "glytoucanID", "GLYCONNECTIDFOUND": "GLYCONNECTIDFOUND", "glyconnectID": "glyconnectID"})
             for count, pdbFile in enumerate(os.listdir(sourceDir)):
                 if pdbFile.endswith(".pdb"):
                     pdbID = os.path.splitext(os.path.basename(pdbFile))[0]
@@ -83,13 +83,17 @@ for directory in srcFileDirs:
                         if(indexMatch != "Not Found"):
                                 glytoucanID = glycosmosData[indexMatch]["AccessionNumber"]
                                 glycosmosWURCS = glycosmosData[indexMatch]["Sequence"]
+                                if(glycosmosData[indexMatch]["glyconnect"] != "NotFound"):
+                                    glyconnectID = glycosmosData[indexMatch]["glyconnect"]["id"]
+                                else: 
+                                    glyconnectID = "N/A"
                         else: 
                                 glytoucanID = "N/A"
-                                glycosmosWURCS = "Not Found"
-                                # stringMatch = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
-                                # writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "stringMatch": stringMatch, "glytoucanID": glytoucanID})
-                        stringMatch = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
-                        writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "stringMatch": stringMatch, "glytoucanID": glytoucanID})
+                                glycosmosWURCS = "N/A"
+                                glyconnectID = "N/A"
+                        GTCIDFOUND = "TRUE" if privateerWURCS == glycosmosWURCS else "FALSE"
+                        GLYCONNECTIDFOUND = "TRUE" if glyconnectID != "N/A" else "FALSE"
+                        writer.writerow({"pdbID": pdbID, "Residue": residueInfo, "Chain": chainInfo, "ClientWURCS": privateerWURCS, "ServerWURCS": glycosmosWURCS, "GTCIDFOUND": GTCIDFOUND, "glytoucanID": glytoucanID, "GLYCONNECTIDFOUND": GLYCONNECTIDFOUND, "glyconnectID": glyconnectID})
 
                         temporaryListOfStrings = temporaryListOfStrings[2:]
 tick = datetime.now()
