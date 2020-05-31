@@ -38,6 +38,15 @@ def generateDataFrame(path):
     dataFrame = pd.read_csv(path)
     return dataFrame 
 
+def generateChainLengthColumn(dataframe):
+    wurcsColumn = dataframe['privateerWURCS']
+    for index, row in dataframe.iterrows():
+        splitString = wurcsColumn[index].split(',', 2)
+        numResidues = splitString[1]
+        dataframe.loc[index, 'TotalResidues'] = numResidues
+    return dataframe
+
+
 rootDir = os.getcwd()
 resultsDir = os.path.join(rootDir, "results/offline")
 outputFileName = "placeholder.csv"
@@ -52,8 +61,8 @@ for resultsListDirectories in os.listdir(resultsDir):
         if resultsFile.endswith(".csv") and resultsFile not in ignoreFileList:
             df = generateDataFrame(os.path.join(techniqueDirectory, resultsFile))
             cleanDataFrame = df.loc[:, ['PDB_ID', 'privateerWURCS', 'GTCIDFOUND', 'GLYCONNECTIDFOUND']]
-            for row in cleanDataFrame:
-                
+            chainLengthDataFrame = generateChainLengthColumn(cleanDataFrame)
+            print(chainLengthDataFrame.head())
             
         
         
